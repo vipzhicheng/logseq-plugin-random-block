@@ -17,8 +17,8 @@
     "@logseq/libs": "^0.0.6"
   },
   "logseq": {
-    "id": "logseq-plugin-starter-vite",
-    "title": "logseq-plugin-starter-vite",
+    "id": "logseq-plugin-random-block",
+    "title": "Random Block",
     "icon": "./icon.png"
   }
 }
