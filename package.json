@@ -10,11 +10,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/lodash": "^4.14.182",
     "typescript": "^4.7.4",
-    "vite": "^3.0.3"
+    "vite": "^3.0.5"
   },
   "dependencies": {
-    "@logseq/libs": "^0.0.6"
+    "@logseq/libs": "^0.0.7",
+    "lodash": "^4.17.21"
   },
   "logseq": {
     "id": "logseq-plugin-random-block",
