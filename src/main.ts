@@ -4,11 +4,7 @@ import { sampleSize } from "lodash";
 const flatBlocks = (blocks: BlockEntity[]) => {
   let flat: any[] = [];
   blocks.forEach((block) => {
-    if (
-      Boolean(block.content) &&
-      block.content.indexOf("::") === -1 &&
-      block.content.indexOf("{{") === -1
-    ) {
+    if (Boolean(block.content) && block.content.indexOf("{{renderer") === -1) {
       flat.push({
         uuid: block.uuid,
       });
@@ -28,13 +24,10 @@ async function parseRandomlyBlockByTag(keyword: string, size = 1) {
   [?b :block/refs ?p]]`;
 
   let results = await logseq.DB.datascriptQuery(query);
-  console.log("results", results);
   let flattenedResults = results
     .filter((item: any) => {
       return (
-        Boolean(item[0].content) &&
-        item[0].content.indexOf("::") === -1 &&
-        item[0].content.indexOf("{{") === -1
+        Boolean(item[0].content) && item[0].content.indexOf("{{renderer") === -1
       );
     })
     .map((mappedQuery: any) => ({
@@ -45,6 +38,27 @@ async function parseRandomlyBlockByTag(keyword: string, size = 1) {
 }
 
 const main = async () => {
+  logseq.Editor.registerSlashCommand(
+    "Random Block Based On Block",
+    async () => {
+      await logseq.Editor.insertAtEditingCursor(
+        `{{renderer random-block, block, (()), 1}}`
+      );
+    }
+  );
+
+  logseq.Editor.registerSlashCommand("Random Block Based On Page", async () => {
+    await logseq.Editor.insertAtEditingCursor(
+      `{{renderer random-block, page, [[]], 1}}`
+    );
+  });
+
+  logseq.Editor.registerSlashCommand("Random Block Based On Tag", async () => {
+    await logseq.Editor.insertAtEditingCursor(
+      `{{renderer random-block, tag, #, 1}}`
+    );
+  });
+
   const model = {
     async refresh(e: any) {
       const { uuid, keyword, randomType, size = 1 } = e.dataset;
@@ -63,8 +77,18 @@ const main = async () => {
         blocks = await parseRandomlyBlockByTag(keyword, size);
       } else if (randomType === "page") {
         const treeBlocks = await logseq.Editor.getPageBlocksTree(keyword);
-        const flattedBlocks = sampleSize(flatBlocks(treeBlocks), size);
-        blocks = flattedBlocks;
+        const flattedBlocks = flatBlocks(treeBlocks);
+        const sampledBlocks = sampleSize(flattedBlocks, size);
+        blocks = sampledBlocks;
+      } else if (randomType === "block") {
+        const block = await logseq.Editor.getBlock(keyword, {
+          includeChildren: true,
+        });
+        if (block?.children) {
+          const flattedBlocks = flatBlocks(block.children as BlockEntity[]);
+          const sampledBlocks = sampleSize(flattedBlocks, size);
+          blocks = sampledBlocks;
+        }
       }
 
       for (let block of blocks) {
@@ -83,6 +107,13 @@ const main = async () => {
   logseq.App.onMacroRendererSlotted(async ({ slot, payload }) => {
     let [type, randomType, keyword, size = 1] = payload.arguments;
 
+    const keywordClean = keyword
+      .replace(/^#+/, "")
+      .replace(/^\(+/, "")
+      .replace(/\)+$/, "")
+      .replace(/^\[+/, "")
+      .replace(/\]+$/, "");
+
     let { uuid } = payload;
     if (type === "random-block") {
       logseq.provideUI({
@@ -90,7 +121,7 @@ const main = async () => {
         slot,
         reset: true,
         template: `
-          <strong>Random block</strong>: <a data-on-click="refresh" data-uuid="${uuid}" data-random-type="${randomType}" data-keyword="${keyword}" data-size="${size}"><i class="ti ti-refresh"></i></a>
+          <strong>Random block</strong>: <a data-on-click="refresh" data-uuid="${uuid}" data-random-type="${randomType}" data-keyword="${keywordClean}" data-size="${size}"><i class="ti ti-refresh"></i></a>
         `,
       });
     }
