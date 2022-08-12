@@ -61,7 +61,7 @@ const main = async () => {
 
   const model = {
     async refresh(e: any) {
-      const { uuid, keyword, randomType, size = 1 } = e.dataset;
+      const { uuid, keyword, randomType, size = 1, extra } = e.dataset;
       const block = await logseq.Editor.getBlock(uuid, {
         includeChildren: true,
       });
@@ -92,7 +92,13 @@ const main = async () => {
       }
 
       for (let block of blocks) {
-        await logseq.Editor.insertBlock(uuid, `((${block.uuid}))`, {
+        // Persistant block uuid
+        const checkBlock = await logseq.Editor.getBlock(block.uuid);
+        if (!checkBlock?.properties?.id) {
+          await logseq.Editor.upsertBlockProperty(block.uuid, "id", block.uuid);
+        }
+
+        await logseq.Editor.insertBlock(uuid, `((${block.uuid})) ${extra}`, {
           before: false,
           sibling: false,
         });
@@ -105,7 +111,7 @@ const main = async () => {
   };
   logseq.provideModel(model);
   logseq.App.onMacroRendererSlotted(async ({ slot, payload }) => {
-    let [type, randomType, keyword, size = 1] = payload.arguments;
+    let [type, randomType, keyword, size = 1, extra] = payload.arguments;
 
     const keywordClean = keyword
       .replace(/^#+/, "")
@@ -121,7 +127,7 @@ const main = async () => {
         slot,
         reset: true,
         template: `
-          <strong>Random block</strong>: <a data-on-click="refresh" data-uuid="${uuid}" data-random-type="${randomType}" data-keyword="${keywordClean}" data-size="${size}"><i class="ti ti-refresh"></i></a>
+          <strong>Random block</strong>: <a data-on-click="refresh" data-uuid="${uuid}" data-random-type="${randomType}" data-keyword="${keywordClean}" data-size="${size}" data-extra="${extra}"><i class="ti ti-refresh"></i></a>
         `,
       });
     }
