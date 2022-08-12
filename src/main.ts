@@ -127,7 +127,7 @@ const main = async () => {
         slot,
         reset: true,
         template: `
-          <strong>Random block</strong>: <a data-on-click="refresh" data-uuid="${uuid}" data-random-type="${randomType}" data-keyword="${keywordClean}" data-size="${size}" data-extra="${extra}"><i class="ti ti-refresh"></i></a>
+          <a data-on-click="refresh" data-uuid="${uuid}" data-random-type="${randomType}" data-keyword="${keywordClean}" data-size="${size}" data-extra="${extra}"><i class="ti ti-refresh"></i></a>
         `,
       });
     }
