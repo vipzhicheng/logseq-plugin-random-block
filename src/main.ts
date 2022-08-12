@@ -98,10 +98,14 @@ const main = async () => {
           await logseq.Editor.upsertBlockProperty(block.uuid, "id", block.uuid);
         }
 
-        await logseq.Editor.insertBlock(uuid, `((${block.uuid})) ${extra}`, {
-          before: false,
-          sibling: false,
-        });
+        await logseq.Editor.insertBlock(
+          uuid,
+          `((${block.uuid})) ${extra || ""}`,
+          {
+            before: false,
+            sibling: false,
+          }
+        );
       }
 
       setTimeout(async () => {
@@ -127,7 +131,9 @@ const main = async () => {
         slot,
         reset: true,
         template: `
-          <a data-on-click="refresh" data-uuid="${uuid}" data-random-type="${randomType}" data-keyword="${keywordClean}" data-size="${size}" data-extra="${extra}"><i class="ti ti-refresh"></i></a>
+          <a data-on-click="refresh" data-uuid="${uuid}" data-random-type="${randomType}" data-keyword="${keywordClean}" data-size="${
+          size || 1
+        }" data-extra="${extra || ""}"><i class="ti ti-refresh"></i></a>
         `,
       });
     }
