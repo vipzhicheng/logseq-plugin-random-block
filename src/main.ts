@@ -1,6 +1,30 @@
 import "@logseq/libs";
-import { BlockEntity } from "@logseq/libs/dist/LSPlugin.user";
+import {
+  BlockEntity,
+  SettingSchemaDesc,
+} from "@logseq/libs/dist/LSPlugin.user";
 import { sampleSize } from "lodash";
+
+const defineSettings: SettingSchemaDesc[] = [
+  {
+    key: "flattenBlocks",
+    title: "Flatten blocks",
+    description:
+      "If checked, it will use all block on a page, otherwise it only use the first level blocks",
+    type: "boolean",
+    default: true,
+  },
+  {
+    key: "useEmbed",
+    title: "Use embed mode",
+    description: "If checked, random blocks shown using embed not ref",
+    type: "boolean",
+    default: false,
+  },
+];
+
+logseq.useSettingsSchema(defineSettings);
+
 const flatBlocks = (blocks: BlockEntity[]) => {
   let flat: any[] = [];
   blocks.forEach((block) => {
@@ -10,7 +34,7 @@ const flatBlocks = (blocks: BlockEntity[]) => {
       });
     }
 
-    if (block.children) {
+    if (logseq.settings?.flattenBlocks && block.children) {
       flat = flat.concat(flatBlocks(block.children as BlockEntity[]));
     }
   });
@@ -98,14 +122,25 @@ const main = async () => {
           await logseq.Editor.upsertBlockProperty(block.uuid, "id", block.uuid);
         }
 
-        await logseq.Editor.insertBlock(
-          uuid,
-          `((${block.uuid})) ${extra || ""}`,
-          {
-            before: false,
-            sibling: false,
-          }
-        );
+        if (logseq.settings?.useEmbed) {
+          await logseq.Editor.insertBlock(
+            uuid,
+            `{{embed ((${block.uuid}))}} ${extra || ""}`,
+            {
+              before: false,
+              sibling: false,
+            }
+          );
+        } else {
+          await logseq.Editor.insertBlock(
+            uuid,
+            `((${block.uuid})) ${extra || ""}`,
+            {
+              before: false,
+              sibling: false,
+            }
+          );
+        }
       }
 
       setTimeout(async () => {
