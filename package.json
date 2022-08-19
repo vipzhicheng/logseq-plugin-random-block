@@ -1,7 +1,7 @@
 {
   "name": "logseq-plugin-random-block",
   "version": "0.0.1",
-  "description": "",
+  "description": "Random blocks from page, block or tags",
   "main": "index.html",
   "scripts": {
     "build": "vite build && cp icon.png package.json LICENSE dist/"

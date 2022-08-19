@@ -62,25 +62,8 @@ async function parseRandomlyBlockByTag(keyword: string, size = 1) {
 }
 
 const main = async () => {
-  logseq.Editor.registerSlashCommand(
-    "Random Block Based On Block",
-    async () => {
-      await logseq.Editor.insertAtEditingCursor(
-        `{{renderer random-block, block, (()), 1}}`
-      );
-    }
-  );
-
-  logseq.Editor.registerSlashCommand("Random Block Based On Page", async () => {
-    await logseq.Editor.insertAtEditingCursor(
-      `{{renderer random-block, page, [[]], 1}}`
-    );
-  });
-
-  logseq.Editor.registerSlashCommand("Random Block Based On Tag", async () => {
-    await logseq.Editor.insertAtEditingCursor(
-      `{{renderer random-block, tag, #, 1}}`
-    );
+  logseq.Editor.registerSlashCommand("Random Block", async () => {
+    await logseq.Editor.insertAtEditingCursor(`{{renderer random-block, , 1}}`);
   });
 
   const model = {
@@ -150,17 +133,26 @@ const main = async () => {
   };
   logseq.provideModel(model);
   logseq.App.onMacroRendererSlotted(async ({ slot, payload }) => {
-    let [type, randomType, keyword, size = 1, extra] = payload.arguments;
-
-    const keywordClean = keyword
-      .replace(/^#+/, "")
-      .replace(/^\(+/, "")
-      .replace(/\)+$/, "")
-      .replace(/^\[+/, "")
-      .replace(/\]+$/, "");
+    let [type, keyword, size = 1, extra] = payload.arguments;
 
     let { uuid } = payload;
     if (type === "random-block") {
+      const keywordClean = keyword
+        .replace(/^#+/, "")
+        .replace(/^\(+/, "")
+        .replace(/\)+$/, "")
+        .replace(/^\[+/, "")
+        .replace(/\]+$/, "");
+
+      let randomType;
+      if (keyword.startsWith("[[")) {
+        randomType = "page";
+      } else if (keyword.startsWith("((")) {
+        randomType = "block";
+      } else {
+        randomType = "tag";
+      }
+
       logseq.provideUI({
         key: "random-block-" + slot,
         slot,
