@@ -42,21 +42,27 @@ const flatBlocks = (blocks: BlockEntity[]) => {
   return flat;
 };
 async function parseRandomlyBlockByTag(keyword: string, size = 1) {
-  let query = `[:find (pull ?b [*])
-  :where
-  [?p :block/name "${keyword.toLowerCase()}"]
-  [?b :block/refs ?p]]`;
+  let flattenedResults: any = [];
+  if (keyword) {
+    let query = `[:find (pull ?b [*])
+    :where
+    [?p :block/name "${keyword.toLowerCase()}"]
+    [?b :block/refs ?p]]`;
 
-  let results = await logseq.DB.datascriptQuery(query);
-  let flattenedResults = results
-    .filter((item: any) => {
-      return (
-        Boolean(item[0].content) && item[0].content.indexOf("{{renderer") === -1
-      );
-    })
-    .map((mappedQuery: any) => ({
-      uuid: mappedQuery[0].uuid["$uuid$"],
-    }));
+    let results = await logseq.DB.datascriptQuery(query);
+    flattenedResults = results
+      .filter((item: any) => {
+        return (
+          Boolean(item[0].content) &&
+          item[0].content.indexOf("{{renderer") === -1
+        );
+      })
+      .map((mappedQuery: any) => ({
+        uuid: Array.isArray(mappedQuery[0].uuid)
+          ? mappedQuery[0].uuid["$uuid$"]
+          : mappedQuery[0].uuid,
+      }));
+  }
 
   return sampleSize(flattenedResults, size);
 }
