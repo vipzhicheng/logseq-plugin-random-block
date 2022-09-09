@@ -1,6 +1,6 @@
 {
   "name": "logseq-plugin-random-block",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Random blocks from page, block or tags",
   "main": "index.html",
   "scripts": {
